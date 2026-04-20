@@ -1,9 +1,9 @@
 """
 매일 오전 9시 (KST) AI 분야 트렌딩 논문 3편을 수집하고,
-Gemini API로 리뷰를 생성한 뒤 이메일로 발송하는 스크립트.
+GitHub Models API로 리뷰를 생성한 뒤 이메일로 발송하는 스크립트.
 
 필요한 환경변수:
-  GEMINI_API_KEY      - Google Gemini API 키
+  GITHUB_TOKEN        - GitHub Actions에서 자동 제공 (별도 설정 불필요)
   GMAIL_USER          - 발신 Gmail 주소
   GMAIL_APP_PASSWORD  - Gmail 앱 비밀번호
 """
@@ -15,8 +15,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import date
 
-from google import genai
-from google.genai import types
+from openai import OpenAI
 import requests
 import xml.etree.ElementTree as ET
 
@@ -159,8 +158,11 @@ def fetch_fulltext(arxiv_id: str) -> str:
 # ── 리뷰 생성 ─────────────────────────────────────────────────────────────────
 
 def generate_review(paper: dict, fulltext: str) -> str:
-    """Gemini API로 논문 리뷰를 생성합니다."""
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    """GitHub Models API로 논문 리뷰를 생성합니다."""
+    client = OpenAI(
+        base_url="https://models.inference.ai.azure.com",
+        api_key=os.environ["GITHUB_TOKEN"],
+    )
 
     paper_info = (
         f"제목: {paper['title']}\n"
@@ -172,11 +174,11 @@ def generate_review(paper: dict, fulltext: str) -> str:
 
     prompt = REVIEW_PROMPT.format(paper_info=paper_info, fulltext=fulltext)
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt,
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
     )
-    return response.text
+    return response.choices[0].message.content
 
 
 # ── 이메일 발송 ───────────────────────────────────────────────────────────────
