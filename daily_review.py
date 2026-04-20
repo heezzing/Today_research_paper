@@ -29,8 +29,8 @@ NUM_PAPERS = 3
 RECIPIENT_2_EMAIL = os.environ["RECIPIENT_2_EMAIL"]
 RECIPIENT_2_NUM_PAPERS = 3
 RECIPIENT_2_KEYWORDS = [
-    "VLA", "vision-language-action", "physical AI", "robot", "embodied",
-    "manipulation", "locomotion", "humanoid", "dexterous", "motor control",
+    "VLA", "vision-language-action", "physical AI",
+    "manipulation", "humanoid", "dexterous",
 ]
 
 HF_DAILY_PAPERS_URL = "https://huggingface.co/api/daily_papers"
