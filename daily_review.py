@@ -17,7 +17,6 @@ from datetime import date
 
 from openai import OpenAI
 import requests
-import xml.etree.ElementTree as ET
 
 
 # ── 상수 ──────────────────────────────────────────────────────────────────────
@@ -26,7 +25,7 @@ RECIPIENT_EMAIL = "kimheekyoung160@gmail.com"
 EMAIL_SUBJECT = "Today_AI_research_paper"
 NUM_PAPERS = 3
 
-ARXIV_API_URL = "http://export.arxiv.org/api/query"
+HF_DAILY_PAPERS_URL = "https://huggingface.co/api/daily_papers"
 JINA_BASE_URL = "https://r.jina.ai"
 
 REVIEW_PROMPT = """당신은 전문 학술 논문 리뷰어이자 친절한 선생님입니다.
@@ -101,27 +100,19 @@ REVIEW_PROMPT = """당신은 전문 학술 논문 리뷰어이자 친절한 선�
 # ── 논문 수집 ─────────────────────────────────────────────────────────────────
 
 def fetch_trending_papers(n: int = NUM_PAPERS) -> list[dict]:
-    """arxiv API에서 AI 분야 최신 논문을 가져옵니다."""
-    params = {
-        "search_query": "cat:cs.AI OR cat:cs.LG OR cat:cs.CL",
-        "sortBy": "submittedDate",
-        "sortOrder": "descending",
-        "max_results": n * 3,  # 여유분 확보 후 필터링
-    }
-    resp = requests.get(ARXIV_API_URL, params=params, timeout=30)
+    """Hugging Face Papers에서 오늘의 트렌딩 논문을 가져옵니다."""
+    resp = requests.get(HF_DAILY_PAPERS_URL, timeout=30)
     resp.raise_for_status()
-
-    ns = {"atom": "http://www.w3.org/2005/Atom"}
-    root = ET.fromstring(resp.text)
-    entries = root.findall("atom:entry", ns)
+    items = resp.json()
 
     papers = []
-    for entry in entries:
-        arxiv_id = entry.find("atom:id", ns).text.split("/abs/")[-1]
-        title = entry.find("atom:title", ns).text.strip().replace("\n", " ")
-        authors = [a.find("atom:name", ns).text for a in entry.findall("atom:author", ns)]
-        published = entry.find("atom:published", ns).text[:10]
-        summary = entry.find("atom:summary", ns).text.strip().replace("\n", " ")
+    for item in items[:n]:
+        paper = item.get("paper", {})
+        arxiv_id = paper.get("id", "")
+        title = paper.get("title", "").replace("\n", " ")
+        authors = [a.get("name", "") for a in paper.get("authors", [])]
+        published = paper.get("publishedAt", "")[:10]
+        summary = paper.get("summary", "").replace("\n", " ")
         link = f"https://arxiv.org/abs/{arxiv_id}"
 
         papers.append({
@@ -132,9 +123,6 @@ def fetch_trending_papers(n: int = NUM_PAPERS) -> list[dict]:
             "summary": summary,
             "link": link,
         })
-
-        if len(papers) == n:
-            break
 
     return papers
 
