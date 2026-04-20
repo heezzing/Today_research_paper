@@ -202,8 +202,8 @@ def build_email_body(reviews: list[tuple[dict, str]]) -> str:
 
 def send_email(body: str) -> None:
     """Gmail SMTP로 이메일을 발송합니다."""
-    gmail_user = os.environ["GMAIL_USER"]
-    gmail_password = os.environ["GMAIL_APP_PASSWORD"]
+    gmail_user = os.environ["GMAIL_USER"].strip()
+    gmail_password = os.environ["GMAIL_APP_PASSWORD"].strip().replace("\xa0", "").replace(" ", "")
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = EMAIL_SUBJECT
