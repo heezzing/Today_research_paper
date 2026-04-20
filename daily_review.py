@@ -21,12 +21,12 @@ import requests
 
 # ── 상수 ──────────────────────────────────────────────────────────────────────
 
-RECIPIENT_EMAIL = "kimheekyoung160@gmail.com"
+RECIPIENT_EMAIL = os.environ["RECIPIENT_EMAIL"]
 EMAIL_SUBJECT = "Today_AI_research_paper"
 NUM_PAPERS = 3
 
 # 수신자 2 설정
-RECIPIENT_2_EMAIL = "heecheol.kim@rlwrld.ai"
+RECIPIENT_2_EMAIL = os.environ["RECIPIENT_2_EMAIL"]
 RECIPIENT_2_NUM_PAPERS = 3
 RECIPIENT_2_KEYWORDS = [
     "VLA", "vision-language-action", "physical AI", "robot", "embodied",
