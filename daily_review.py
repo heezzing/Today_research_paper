@@ -3,7 +3,7 @@
 Claude API로 리뷰를 생성한 뒤 이메일로 발송하는 스크립트.
 
 필요한 환경변수:
-  ANTHROPIC_API_KEY   - Claude API 키
+  GEMINI_API_KEY      - Google Gemini API 키
   GMAIL_USER          - 발신 Gmail 주소
   GMAIL_APP_PASSWORD  - Gmail 앱 비밀번호
 """
@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import date
 
-import anthropic
+import google.generativeai as genai
 import requests
 import xml.etree.ElementTree as ET
 
@@ -158,8 +158,9 @@ def fetch_fulltext(arxiv_id: str) -> str:
 # ── 리뷰 생성 ─────────────────────────────────────────────────────────────────
 
 def generate_review(paper: dict, fulltext: str) -> str:
-    """Claude API로 논문 리뷰를 생성합니다."""
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    """Gemini API로 논문 리뷰를 생성합니다."""
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
     paper_info = (
         f"제목: {paper['title']}\n"
@@ -171,12 +172,8 @@ def generate_review(paper: dict, fulltext: str) -> str:
 
     prompt = REVIEW_PROMPT.format(paper_info=paper_info, fulltext=fulltext)
 
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return message.content[0].text
+    response = model.generate_content(prompt)
+    return response.text
 
 
 # ── 이메일 발송 ───────────────────────────────────────────────────────────────
