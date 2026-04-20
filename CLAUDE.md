@@ -8,14 +8,14 @@
 
 **자동화 파이프라인 (매일 오전 9시 실행):**
 ```
-[arxiv 최신 논문 수집] → [Jina Reader 전문 fetch] → [Gemini API 리뷰 생성 x3] → [Gmail 발송]
+[HuggingFace 트렌딩 논문 수집] → [Jina Reader 전문 fetch] → [GitHub Models 리뷰 생성 x3] → [Gmail 발송]
 ```
 
 **이메일 발송 설정:**
 - 수신자: kimheekyoung160@gmail.com
 - 제목: `Today_AI_research_paper`
 - 발송 시각: 매일 오전 9:00 (KST)
-- 내용: 논문 3편 리뷰 전문 (각 리뷰 사이 구분선 `---` 삽입)
+- 내용: 논문 3편 리뷰 전문 (각 리뷰 사이 구분선 삽입)
 
 ---
 
@@ -24,11 +24,11 @@
 ```
 mcp-servers/
 ├── daily_review.py             # 논문 수집 → 리뷰 생성 → 이메일 발송 메인 스크립트
-├── requirements.txt            # anthropic, requests
+├── requirements.txt            # openai, requests
 ├── .github/
 │   └── workflows/
 │       └── daily_review.yml   # GitHub Actions: 매일 00:00 UTC(09:00 KST) 실행
-└── AI_research_paper/          # ScholarScope MCP 서버
+└── AI_research_paper/          # ScholarScope MCP 서버 (로컬 개발용)
     ├── src/
     │   ├── server.py           # FastMCP 서버 진입점, 모든 tool 정의
     │   ├── api_requests.py     # OpenAlex API HTTP 클라이언트
@@ -41,14 +41,34 @@ mcp-servers/
 
 ---
 
-## MCP 서버 역할
+## 기술 스택
+
+| 구성요소 | 기술 |
+|---|---|
+| 논문 수집 | Hugging Face Daily Papers API (커뮤니티 upvote 기반 트렌딩) |
+| 전문 fetch | Jina Reader (`r.jina.ai`) |
+| 리뷰 생성 | GitHub Models — `gpt-4o-mini` (GITHUB_TOKEN으로 무료 사용) |
+| 이메일 발송 | Gmail SMTP SSL (포트 465) |
+| 자동화 | GitHub Actions (매일 00:00 UTC) |
+
+---
+
+## GitHub Actions Secrets
+
+| Secret | 설명 |
+|---|---|
+| `GITHUB_TOKEN` | 자동 제공 — 별도 등록 불필요 |
+| `GMAIL_USER` | 발신 Gmail 주소 |
+| `GMAIL_APP_PASSWORD` | Gmail 앱 비밀번호 |
+
+---
+
+## MCP 서버 역할 (로컬 개발용)
 
 | MCP 서버 | 역할 |
 |---|---|
 | `scholarscope` | OpenAlex API로 논문/저자/기관 검색, Jina 경유 전문 fetch |
-| `paper-search` | arxiv, pubmed, biorxiv 등 다양한 소스에서 논문 검색/다운로드 |
 | `arxiv` | arxiv 전용 검색 및 트렌드 분석 |
-| `firecrawl` | 웹 크롤링 (논문 페이지 등) |
 | `filesystem` | 로컬 파일 접근 |
 | `google-drive` | 결과물 저장/공유 |
 
@@ -71,9 +91,9 @@ mcp-servers/
 
 ## 개발 환경
 
-- Python 3.13+
-- 패키지 관리: `uv`
-- 실행: `uv run fastmcp run src/server.py`
+- Python 3.11+
+- 패키지 관리: `pip` (GitHub Actions) / `uv` (ScholarScope MCP)
+- ScholarScope 실행: `uv run fastmcp run src/server.py`
 - 환경변수: `OPENALEX_MAILTO` (OpenAlex polite pool 등록용 이메일)
 
 ---

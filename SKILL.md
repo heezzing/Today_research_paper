@@ -12,15 +12,13 @@
 ## /daily — 데일리 파이프라인
 
 ### STEP 1 — 트렌딩 논문 3편 선정
-1. `arxiv` MCP → `scrape_recent_category_papers` 또는 `analyze_trends`로 AI 분야 최신 트렌딩 논문 후보 수집
-2. `paper-search` MCP → `search_arxiv`로 보완 검색 (cs.AI, cs.LG, cs.CL 카테고리 우선)
-3. 인용수, 최신성, 주제 다양성을 고려해 3편 최종 선정
+1. Hugging Face Daily Papers API (`huggingface.co/api/daily_papers`) 에서 오늘의 트렌딩 논문 수집
+2. 커뮤니티 upvote 순으로 상위 3편 선정
 
 ### STEP 2 — 전문 가져오기
 각 논문마다 아래 순서로 시도:
-1. `scholarscope` → `search_papers`로 OpenAlex ID 확인 → `fetch_fulltext`로 `preferred_fulltext_url` 접근
-2. 실패 시 → `paper-search` → `read_arxiv_paper` 또는 `download_arxiv`
-3. 그래도 실패 시 → `firecrawl` → `firecrawl_scrape`으로 논문 페이지 직접 크롤링
+1. Jina Reader (`r.jina.ai/https://arxiv.org/abs/{id}`) 로 전문 fetch
+2. 실패 시 → `scholarscope` → `fetch_fulltext`로 `preferred_fulltext_url` 접근
 
 ### STEP 3 — 리뷰 문서 생성
 아래 `/review` 스킬의 리뷰 문서 구성 + 작성 지침에 따라 논문 3편 각각 리뷰 작성.
@@ -29,10 +27,10 @@
 - 3편 리뷰를 하나의 이메일 본문에 합치되, 각 리뷰 앞에 논문 제목/저자/링크 헤더 추가
 - 수신자: kimheekyoung160@gmail.com / 제목: Today_AI_research_paper
 - `smtplib` + Gmail SMTP SSL (포트 465) 사용
-- GitHub Actions Secrets에 아래 3개 등록 필요:
-  - `GEMINI_API_KEY`
+- GitHub Actions Secrets에 아래 2개 등록 필요:
   - `GMAIL_USER` (발신 Gmail 주소)
   - `GMAIL_APP_PASSWORD` (Gmail 앱 비밀번호 — Google 계정 → 보안 → 앱 비밀번호)
+- `GITHUB_TOKEN`은 GitHub Actions에서 자동 제공 (별도 등록 불필요)
 
 ---
 

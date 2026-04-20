@@ -1,23 +1,24 @@
 # Today_research_paper
 
-매일 오전 9시 (KST) AI 분야 트렌딩 논문 3편을 자동 수집하고, Gemini API로 리뷰를 생성하여 이메일로 발송하는 자동화 시스템입니다.
+매일 오전 9시 (KST) AI 분야 트렌딩 논문 3편을 자동 수집하고, GitHub Models로 리뷰를 생성하여 이메일로 발송하는 자동화 시스템입니다.
 
 ## 파이프라인
 
 ```
-[arxiv 최신 논문 수집] → [Jina Reader 전문 fetch] → [Gemini 리뷰 생성 x3] → [Gmail 발송]
+[HuggingFace 트렌딩 논문 수집] → [Jina Reader 전문 fetch] → [GitHub Models 리뷰 생성 x3] → [Gmail 발송]
 ```
 
 - 실행 주기: 매일 00:00 UTC (09:00 KST), GitHub Actions
+- 논문 출처: Hugging Face Daily Papers (커뮤니티 upvote 기반 트렌딩)
+- 리뷰 모델: `gpt-4o-mini` (GitHub Models, GITHUB_TOKEN으로 무료 사용)
 - 수신자: kimheekyoung160@gmail.com
-- 논문 카테고리: cs.AI, cs.LG, cs.CL
 
 ## 프로젝트 구조
 
 ```
 mcp-servers/
 ├── daily_review.py             # 메인 스크립트 (수집 → 리뷰 → 발송)
-├── requirements.txt            # google-generativeai, requests
+├── requirements.txt            # openai, requests
 ├── .github/
 │   └── workflows/
 │       └── daily_review.yml   # GitHub Actions 스케줄 워크플로우
@@ -34,14 +35,14 @@ mcp-servers/
 
 | Secret | 설명 |
 |---|---|
-| `GEMINI_API_KEY` | Google Gemini API 키 |
+| `GITHUB_TOKEN` | 자동 제공 — 별도 등록 불필요 |
 | `GMAIL_USER` | 발신 Gmail 주소 |
 | `GMAIL_APP_PASSWORD` | Gmail 앱 비밀번호 |
 
 ## 로컬 실행
 
 ```bash
-export GEMINI_API_KEY=...
+export GITHUB_TOKEN=your_github_token
 export GMAIL_USER=...
 export GMAIL_APP_PASSWORD=...
 pip install -r requirements.txt
