@@ -1,6 +1,6 @@
 """
 매일 오전 9시 (KST) AI 분야 트렌딩 논문 3편을 수집하고,
-Claude API로 리뷰를 생성한 뒤 이메일로 발송하는 스크립트.
+Gemini API로 리뷰를 생성한 뒤 이메일로 발송하는 스크립트.
 
 필요한 환경변수:
   GEMINI_API_KEY      - Google Gemini API 키
@@ -15,7 +15,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import date
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import requests
 import xml.etree.ElementTree as ET
 
@@ -159,8 +160,7 @@ def fetch_fulltext(arxiv_id: str) -> str:
 
 def generate_review(paper: dict, fulltext: str) -> str:
     """Gemini API로 논문 리뷰를 생성합니다."""
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     paper_info = (
         f"제목: {paper['title']}\n"
@@ -172,7 +172,10 @@ def generate_review(paper: dict, fulltext: str) -> str:
 
     prompt = REVIEW_PROMPT.format(paper_info=paper_info, fulltext=fulltext)
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt,
+    )
     return response.text
 
 

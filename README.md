@@ -1,1 +1,66 @@
 # Today_research_paper
+
+매일 오전 9시 (KST) AI 분야 트렌딩 논문 3편을 자동 수집하고, Gemini API로 리뷰를 생성하여 이메일로 발송하는 자동화 시스템입니다.
+
+## 파이프라인
+
+```
+[arxiv 최신 논문 수집] → [Jina Reader 전문 fetch] → [Gemini 리뷰 생성 x3] → [Gmail 발송]
+```
+
+- 실행 주기: 매일 00:00 UTC (09:00 KST), GitHub Actions
+- 수신자: kimheekyoung160@gmail.com
+- 논문 카테고리: cs.AI, cs.LG, cs.CL
+
+## 프로젝트 구조
+
+```
+mcp-servers/
+├── daily_review.py             # 메인 스크립트 (수집 → 리뷰 → 발송)
+├── requirements.txt            # google-generativeai, requests
+├── .github/
+│   └── workflows/
+│       └── daily_review.yml   # GitHub Actions 스케줄 워크플로우
+└── AI_research_paper/          # ScholarScope MCP 서버 (로컬 개발용)
+    ├── src/
+    │   ├── server.py
+    │   ├── api_requests.py
+    │   ├── schemas.py
+    │   └── utils.py
+    └── pyproject.toml
+```
+
+## GitHub Actions Secrets 설정
+
+| Secret | 설명 |
+|---|---|
+| `GEMINI_API_KEY` | Google Gemini API 키 |
+| `GMAIL_USER` | 발신 Gmail 주소 |
+| `GMAIL_APP_PASSWORD` | Gmail 앱 비밀번호 |
+
+## 로컬 실행
+
+```bash
+export GEMINI_API_KEY=...
+export GMAIL_USER=...
+export GMAIL_APP_PASSWORD=...
+pip install -r requirements.txt
+python daily_review.py
+```
+
+## MCP 서버 (로컬 개발)
+
+Claude Code에서 논문 리뷰를 직접 요청할 때 사용하는 MCP 서버들:
+
+| MCP 서버 | 역할 |
+|---|---|
+| `scholarscope` | OpenAlex API로 논문 검색 및 전문 fetch |
+| `arxiv` | arxiv 전용 검색 및 트렌드 분석 |
+| `filesystem` | 로컬 파일 접근 |
+| `google-drive` | 결과물 저장/공유 |
+
+ScholarScope MCP 실행:
+```bash
+cd AI_research_paper
+uv run fastmcp run src/server.py
+```

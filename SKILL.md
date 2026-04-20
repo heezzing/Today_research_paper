@@ -30,7 +30,7 @@
 - 수신자: kimheekyoung160@gmail.com / 제목: Today_AI_research_paper
 - `smtplib` + Gmail SMTP SSL (포트 465) 사용
 - GitHub Actions Secrets에 아래 3개 등록 필요:
-  - `ANTHROPIC_API_KEY`
+  - `GEMINI_API_KEY`
   - `GMAIL_USER` (발신 Gmail 주소)
   - `GMAIL_APP_PASSWORD` (Gmail 앱 비밀번호 — Google 계정 → 보안 → 앱 비밀번호)
 
