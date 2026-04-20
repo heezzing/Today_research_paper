@@ -12,10 +12,11 @@
 ```
 
 **이메일 발송 설정:**
-- 수신자: kimheekyoung160@gmail.com
 - 제목: `Today_AI_research_paper`
 - 발송 시각: 매일 오전 9:00 (KST)
-- 내용: 논문 3편 리뷰 전문 (각 리뷰 사이 구분선 삽입)
+- 수신자 1: `RECIPIENT_EMAIL` 환경변수 — HF 트렌딩 상위 2편
+- 수신자 2: `RECIPIENT_2_EMAIL` 환경변수 — Physical AI / VLA 키워드 논문 3편
+- 내용: 논문 리뷰 전문 (각 리뷰 사이 구분선 삽입)
 
 ---
 
@@ -60,6 +61,8 @@ mcp-servers/
 | `GITHUB_TOKEN` | 자동 제공 — 별도 등록 불필요 |
 | `GMAIL_USER` | 발신 Gmail 주소 |
 | `GMAIL_APP_PASSWORD` | Gmail 앱 비밀번호 |
+| `RECIPIENT_EMAIL` | 수신자 1 이메일 |
+| `RECIPIENT_2_EMAIL` | 수신자 2 이메일 |
 
 ---
 

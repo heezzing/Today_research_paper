@@ -11,9 +11,16 @@
 
 ## /daily — 데일리 파이프라인
 
-### STEP 1 — 트렌딩 논문 3편 선정
+### STEP 1 — 논문 선정
+
+**수신자 1** — HF 트렌딩 상위 2편
 1. Hugging Face Daily Papers API (`huggingface.co/api/daily_papers`) 에서 오늘의 트렌딩 논문 수집
-2. 커뮤니티 upvote 순으로 상위 3편 선정
+2. 커뮤니티 upvote 순으로 상위 2편 선정
+
+**수신자 2** — Physical AI / VLA 키워드 필터 3편
+1. 동일 API에서 전체 논문 수집
+2. 제목+초록에서 키워드 매칭 (VLA, vision-language-action, physical AI, robot, embodied, manipulation, locomotion, humanoid 등)
+3. 매칭 논문이 3편 미만이면 트렌딩 상위 3편으로 대체
 
 ### STEP 2 — 전문 가져오기
 각 논문마다 아래 순서로 시도:
@@ -24,12 +31,15 @@
 아래 `/review` 스킬의 리뷰 문서 구성 + 작성 지침에 따라 논문 3편 각각 리뷰 작성.
 
 ### STEP 4 — 이메일 발송
-- 3편 리뷰를 하나의 이메일 본문에 합치되, 각 리뷰 앞에 논문 제목/저자/링크 헤더 추가
-- 수신자: kimheekyoung160@gmail.com / 제목: Today_AI_research_paper
+- 리뷰를 하나의 이메일 본문에 합치되, 각 리뷰 앞에 논문 제목/저자/링크 헤더 추가
+- 제목: `Today_AI_research_paper`
 - `smtplib` + Gmail SMTP SSL (포트 465) 사용
-- GitHub Actions Secrets에 아래 2개 등록 필요:
+- 수신자 이메일은 환경변수로 관리 (`RECIPIENT_EMAIL`, `RECIPIENT_2_EMAIL`)
+- GitHub Actions Secrets 등록 필요:
   - `GMAIL_USER` (발신 Gmail 주소)
   - `GMAIL_APP_PASSWORD` (Gmail 앱 비밀번호 — Google 계정 → 보안 → 앱 비밀번호)
+  - `RECIPIENT_EMAIL` (수신자 1 이메일)
+  - `RECIPIENT_2_EMAIL` (수신자 2 이메일)
 - `GITHUB_TOKEN`은 GitHub Actions에서 자동 제공 (별도 등록 불필요)
 
 ---
