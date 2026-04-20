@@ -14,7 +14,7 @@
 **이메일 발송 설정:**
 - 제목: `Today_AI_research_paper`
 - 발송 시각: 매일 오전 9:00 (KST)
-- 수신자 1: `RECIPIENT_EMAIL` 환경변수 — HF 트렌딩 상위 2편
+- 수신자 1: `RECIPIENT_EMAIL` 환경변수 — AI 트렌딩 상위 2편
 - 수신자 2: `RECIPIENT_2_EMAIL` 환경변수 — Physical AI / VLA 키워드 논문 3편
 - 내용: 논문 리뷰 전문 (각 리뷰 사이 구분선 삽입)
 

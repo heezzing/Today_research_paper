@@ -13,7 +13,7 @@
 
 ### STEP 1 — 논문 선정
 
-**수신자 1** — HF 트렌딩 상위 2편
+**수신자 1** — AI 트렌딩 상위 2편
 1. Hugging Face Daily Papers API (`huggingface.co/api/daily_papers`) 에서 오늘의 트렌딩 논문 수집
 2. 커뮤니티 upvote 순으로 상위 2편 선정
 
