@@ -173,7 +173,7 @@ def generate_review(paper: dict, fulltext: str) -> str:
     prompt = REVIEW_PROMPT.format(paper_info=paper_info, fulltext=fulltext)
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-1.5-flash",
         contents=prompt,
     )
     return response.text
