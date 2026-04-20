@@ -25,6 +25,14 @@ RECIPIENT_EMAIL = "kimheekyoung160@gmail.com"
 EMAIL_SUBJECT = "Today_AI_research_paper"
 NUM_PAPERS = 3
 
+# 수신자 2 설정
+RECIPIENT_2_EMAIL = "heecheol.kim@rlwrld.ai"
+RECIPIENT_2_NUM_PAPERS = 3
+RECIPIENT_2_KEYWORDS = [
+    "VLA", "vision-language-action", "physical AI", "robot", "embodied",
+    "manipulation", "locomotion", "humanoid", "dexterous", "motor control",
+]
+
 HF_DAILY_PAPERS_URL = "https://huggingface.co/api/daily_papers"
 JINA_BASE_URL = "https://r.jina.ai"
 
@@ -127,6 +135,41 @@ def fetch_trending_papers(n: int = NUM_PAPERS) -> list[dict]:
     return papers
 
 
+def fetch_keyword_filtered_papers(keywords: list[str], n: int = RECIPIENT_2_NUM_PAPERS) -> list[dict]:
+    """Hugging Face Papers 전체에서 키워드 기반으로 논문을 필터링합니다."""
+    resp = requests.get(HF_DAILY_PAPERS_URL, timeout=30)
+    resp.raise_for_status()
+    items = resp.json()
+
+    def matches(item: dict) -> bool:
+        paper = item.get("paper", {})
+        text = (paper.get("title", "") + " " + paper.get("summary", "")).lower()
+        return any(kw.lower() in text for kw in keywords)
+
+    filtered = [item for item in items if matches(item)]
+
+    papers = []
+    for item in filtered[:n]:
+        paper = item.get("paper", {})
+        arxiv_id = paper.get("id", "")
+        title = paper.get("title", "").replace("\n", " ")
+        authors = [a.get("name", "") for a in paper.get("authors", [])]
+        published = paper.get("publishedAt", "")[:10]
+        summary = paper.get("summary", "").replace("\n", " ")
+        link = f"https://arxiv.org/abs/{arxiv_id}"
+
+        papers.append({
+            "id": arxiv_id,
+            "title": title,
+            "authors": ", ".join(authors[:3]) + (" 외" if len(authors) > 3 else ""),
+            "published": published,
+            "summary": summary,
+            "link": link,
+        })
+
+    return papers
+
+
 # ── 전문 가져오기 ──────────────────────────────────────────────────────────────
 
 def fetch_fulltext(arxiv_id: str) -> str:
@@ -188,7 +231,7 @@ def build_email_body(reviews: list[tuple[dict, str]]) -> str:
     return "\n".join(sections)
 
 
-def send_email(body: str) -> None:
+def send_email(body: str, recipient: str = RECIPIENT_EMAIL) -> None:
     """Gmail SMTP로 이메일을 발송합니다."""
     gmail_user = os.environ["GMAIL_USER"].strip()
     gmail_password = os.environ["GMAIL_APP_PASSWORD"].strip().replace("\xa0", "").replace(" ", "")
@@ -196,43 +239,55 @@ def send_email(body: str) -> None:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = EMAIL_SUBJECT
     msg["From"] = gmail_user
-    msg["To"] = RECIPIENT_EMAIL
+    msg["To"] = recipient
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_user, gmail_password)
-        server.sendmail(gmail_user, RECIPIENT_EMAIL, msg.as_string())
+        server.sendmail(gmail_user, recipient, msg.as_string())
 
-    print(f"[OK] 이메일 발송 완료 → {RECIPIENT_EMAIL}")
+    print(f"[OK] 이메일 발송 완료 → {recipient}")
 
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 
-def main():
-    print("=== AI 논문 데일리 리뷰 시작 ===")
-
-    print("[1/3] 트렌딩 논문 수집 중...")
-    papers = fetch_trending_papers(NUM_PAPERS)
-    for p in papers:
-        print(f"  - {p['title']}")
-
+def process_and_send(papers: list[dict], recipient: str) -> None:
+    """논문 리뷰 생성 후 지정 수신자에게 이메일을 발송합니다."""
+    n = len(papers)
     reviews = []
     for i, paper in enumerate(papers, 1):
-        print(f"[2/3] 논문 {i}/{NUM_PAPERS} 처리 중: {paper['title'][:50]}...")
-
+        print(f"  논문 {i}/{n} 처리 중: {paper['title'][:50]}...")
         fulltext = fetch_fulltext(paper["id"])
         review = generate_review(paper, fulltext)
         reviews.append((paper, review))
-
-        # API 레이트 리밋 방지
-        if i < NUM_PAPERS:
+        if i < n:
             time.sleep(3)
 
-    print("[3/3] 이메일 발송 중...")
     body = build_email_body(reviews)
-    send_email(body)
+    send_email(body, recipient)
 
-    print("=== 완료 ===")
+
+def main():
+    print("=== AI 논문 데일리 리뷰 시작 ===")
+
+    # ── 수신자 1: 트렌딩 상위 2편 ─────────────────────────────────────────────
+    print(f"\n[수신자 1] {RECIPIENT_EMAIL} — 트렌딩 상위 2편")
+    papers_1 = fetch_trending_papers(n=2)
+    for p in papers_1:
+        print(f"  - {p['title']}")
+    process_and_send(papers_1, RECIPIENT_EMAIL)
+
+    # ── 수신자 2: Physical AI / VLA 키워드 필터 3편 ───────────────────────────
+    print(f"\n[수신자 2] {RECIPIENT_2_EMAIL} — Physical AI / VLA 논문 {RECIPIENT_2_NUM_PAPERS}편")
+    papers_2 = fetch_keyword_filtered_papers(RECIPIENT_2_KEYWORDS, n=RECIPIENT_2_NUM_PAPERS)
+    if not papers_2:
+        print("  [WARN] 키워드 매칭 논문 없음 — 트렌딩 상위 3편으로 대체")
+        papers_2 = fetch_trending_papers(n=RECIPIENT_2_NUM_PAPERS)
+    for p in papers_2:
+        print(f"  - {p['title']}")
+    process_and_send(papers_2, RECIPIENT_2_EMAIL)
+
+    print("\n=== 완료 ===")
 
 
 if __name__ == "__main__":
